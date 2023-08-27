@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>htmx Example</title>
+    <script src="https://unpkg.com/htmx.org@1.9.10" integrity="sha384-D1Kt99CQMDuVetoL1lrYwg5t+9QdHe7NLX/SoJYkXDFfX37iInKRy5xLSi8nO7UC" crossorigin="anonymous"></script>
+    <script src="https://unpkg.com/htmx.org/dist/ext/json-enc.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/@tarekraafat/autocomplete.js@10.2.7/dist/autoComplete.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tarekraafat/autocomplete.js@10.2.7/dist/css/autoComplete.min.css">
+
+
+    <style type="text/css">
+        body {
+            background-color: #fff8f0;
+        }
+        div#gpt-response {
+            background-color: #eee;
+            padding: 1em;
+            border: 1px solid #444;
+            margin-top: 1em;
+        }
+        textarea {
+            width: 400px;
+            height: 60px;
+        }
+    </style>
+</head>
+<body>
+
+<h2>Welcome!</h2>
+
+<p>This page allows you to get a ChatGPT summary of an MP's recent tweets. Please be aware that ChatGPT often generates unreliable results!</p>
+
+<form>
+
+<label for="twitter_handle">Select your MP:</label>
+
+<!--div class="autoComplete_wrapper">
+    <input id="twitter_handle" type="search" dir="ltr" spellcheck=false autocorrect="off" autocomplete="off" autocapitalize="off">
+</div-->
+
+<select id="twitter_handle" name="twitter_handle">
+    __MPS_OPTIONS__
+</select>
+
+<br><br>
+
+<label for="topic">What would you like to ask?</label>
+<br>
+<textarea id="topic" name="topic" value="health provision">green energy</textarea>
+
+<br>
+
+<button type="submit" hx-post="/ask" hx-ext='json-enc' hx-target="#response" hx-swap="innerHTML" hx-indicator="#spinner">
+    Ask
+    <img  id="spinner" class="htmx-indicator" src="https://icons8.com/preloaders/preloaders/1488/Iphone-spinner-2.gif"/>
+</button>
+</form>
+
+<div id="response"></div>
+<script>
+    const autoCompleteJS = new autoComplete({
+        selector: "#twitter_handle",
+        placeHolder: "Search for Food...",
+        data: {
+            //src: ["Zarah Sultana MP - @zarahsultana", "Alex Crawford - @AlexCrawfordSky", "Patrick Wintour - @patrickwintour"],
+            src: [__MPS_OPTIONS__],
+            cache: true,
+        },
+        resultsList: {
+            element: (list, data) => {
+                if (!data.results.length) {
+                    // Create "No Results" message element
+                    const message = document.createElement("div");
+                    message.setAttribute("class", "no_result");
+                    message.innerHTML = `<span>Found No Results for "${data.query}"</span>`;
+                    list.prepend(message);
+                }
+            },
+            noResults: true,
+        },
+        resultItem: {
+            highlight: true
+        },
+        events: {
+            input: {
+                selection: (event) => {
+                    const selection = event.detail.selection.value;
+                    autoCompleteJS.input.value = selection;
+                }
+            }
+        }
+    });
+</script>
+
+</body>
+</html>
