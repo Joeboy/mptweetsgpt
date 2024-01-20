@@ -26,9 +26,6 @@ app = FastAPI()
 @cache
 def get_homepage_html() -> str:
     mps_data, _ = get_mps_and_tweets()
-    mps_data = mps_data[
-        :800
-    ]  # TODO: I think this is only needed because our dataset is not the correct one
     mps_options = "\n".join(
         f'<option value="{mp_data[0]}">{mp_data[1]}</option>' for mp_data in mps_data
     )
@@ -48,6 +45,15 @@ async def home():
 def get_mps_and_tweets() -> tuple:
     with open(TWEETS_PATH) as f:
         tweet_data = json.load(f)
+
+    # At present, the data contains non-MP tweets (retweets maybe?)
+    # Hopefully that'll get fixed but in the meantime:
+    import csv
+
+    with (DATA_ROOT / "MPsonTwitter_list_name.csv").open() as f:
+        reader = csv.DictReader(f)
+        mp_twitter_handles = [row["Screen name"] for row in reader]
+    tweet_data = [t for t in tweet_data if t["username"] in mp_twitter_handles]
 
     mps_data = list({tw["username"]: tw["fullname"] for tw in tweet_data}.items())
 
