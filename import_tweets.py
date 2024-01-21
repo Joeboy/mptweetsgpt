@@ -28,9 +28,11 @@ def process():
     data = [t for t in data if t["username"] in full_names_by_handle.keys()]
     data2 = [t for t in data2 if t["username"] in full_names_by_handle.keys()]
 
+    # Combine the files, omitting any duplicated tweets:
     data_tweet_ids = [tw["id"] for tw in data]
     data.extend((tw for tw in data2 if tw["tweet_id"] not in data_tweet_ids))
 
+    # Map each twitter handle to a list of tweets
     tweets_by_handle = defaultdict(list)
     for tw in data:
         if tw.get("text"):  # Not all tweets have text

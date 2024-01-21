@@ -31,8 +31,7 @@ To deploy it:
   that's sort of OK but we might want to mock it at some point
 * Make it look prettier
 * Make the "spinner" indicator work properly
-* List of MPs is too long for a static dropdown, do an autocomplete
-* In fact right now the html / js is a complete mess
+* List of MPs is a bit long for a static dropdown, maybe do an autocomplete?
 
 ## Credits
 

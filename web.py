@@ -13,14 +13,8 @@ FULL_NAMES_BY_HANDLE_PATH = DATA_ROOT / "full_names_by_handle.json"
 HTML_PATH = PROJECT_ROOT / "home.html"
 
 
-class UserPrompt(BaseModel):
-    """A prompt entered by a user"""
-
-    topic: str
-    twitter_handle: str
-
-
-app = FastAPI()
+class NoTweetsFoundException(Exception):
+    pass
 
 
 @cache
@@ -31,14 +25,6 @@ def get_homepage_html() -> str:
     )
     template = HTML_PATH.read_text()
     return template.replace("__MPS_OPTIONS__", mps_options)
-
-
-@app.get("/")
-async def home():
-    return HTMLResponse(
-        content=get_homepage_html(),
-        status_code=200,
-    )
 
 
 @cache
@@ -53,10 +39,6 @@ def get_full_names_by_handle() -> dict[str, str]:
         return json.load(f)
 
 
-class NoTweetsFoundException(Exception):
-    pass
-
-
 def get_tweets_for_handle(twitter_handle: str) -> list[str]:
     tweets_by_handle = get_tweets_by_handle()
     try:
@@ -66,6 +48,24 @@ def get_tweets_for_handle(twitter_handle: str) -> list[str]:
             f"Couldn't find any tweets for twitter handle '{twitter_handle}'"
         )
     return tweets_for_handle
+
+
+app = FastAPI()
+
+
+@app.get("/")
+async def home():
+    return HTMLResponse(
+        content=get_homepage_html(),
+        status_code=200,
+    )
+
+
+class UserPrompt(BaseModel):
+    """A prompt entered by a user"""
+
+    topic: str
+    twitter_handle: str
 
 
 @app.post("/ask")
