@@ -24,10 +24,21 @@ To deploy it:
 
 ## TODO
 
-* We still need a full scrape of the twitter data (Hannah is working on this)
+* Figure out a way to update the tweet data. At the moment it's compiled from
+  two files created with apify.com, which were apparently a struggle to
+  generate and may still be incomplete
 * We only have very basic tests. They currently talk to the real OpenAI API, maybe
   that's sort of OK but we might want to mock it at some point
 * Make it look prettier
 * Make the "spinner" indicator work properly
 * List of MPs is too long for a static dropdown, do an autocomplete
 * In fact right now the html / js is a complete mess
+
+## Credits
+
+Thanks to:
+
+* Matt for the [project](https://github.com/mattmegarry/prompt-ner)
+  that provided the starting point. 
+* Hannah for scraping the tweet data, and for running the hack day at which
+  I did this.
