@@ -1,8 +1,9 @@
+from typing import Optional
 from openai import OpenAI
 from config import OPENAI_API_KEY
 
 
-def get_openai_response(topic: str, tweets: str) -> str | None:
+def get_openai_response(topic: str, tweets: str) -> Optional[str]:
     client = OpenAI(
         api_key=OPENAI_API_KEY,
     )

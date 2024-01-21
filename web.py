@@ -1,4 +1,3 @@
-from collections import defaultdict
 from functools import cache
 import json
 from pathlib import Path
@@ -9,7 +8,8 @@ from fastapi.responses import HTMLResponse
 
 PROJECT_ROOT = Path(__file__).parent
 DATA_ROOT = PROJECT_ROOT / "data"
-TWEETS_PATH = DATA_ROOT / "dataset_twitter-scraper_2024-01-20_12-44-03-246.json"
+TWEETS_BY_HANDLE_PATH = DATA_ROOT / "tweets_by_handle.json"
+FULL_NAMES_BY_HANDLE_PATH = DATA_ROOT / "full_names_by_handle.json"
 HTML_PATH = PROJECT_ROOT / "home.html"
 
 
@@ -25,9 +25,9 @@ app = FastAPI()
 
 @cache
 def get_homepage_html() -> str:
-    mps_data, _ = get_mps_and_tweets()
     mps_options = "\n".join(
-        f'<option value="{mp_data[0]}">{mp_data[1]}</option>' for mp_data in mps_data
+        f'<option value="{handle}">{full_name}</option>'
+        for handle, full_name in get_full_names_by_handle().items()
     )
     template = HTML_PATH.read_text()
     return template.replace("__MPS_OPTIONS__", mps_options)
@@ -42,27 +42,15 @@ async def home():
 
 
 @cache
-def get_mps_and_tweets() -> tuple:
-    with open(TWEETS_PATH) as f:
-        tweet_data = json.load(f)
+def get_tweets_by_handle() -> dict[str, list[str]]:
+    with TWEETS_BY_HANDLE_PATH.open() as f:
+        return json.load(f)
 
-    # At present, the data contains non-MP tweets (retweets maybe?)
-    # Hopefully that'll get fixed but in the meantime:
-    import csv
 
-    with (DATA_ROOT / "MPsonTwitter_list_name.csv").open() as f:
-        reader = csv.DictReader(f)
-        mp_twitter_handles = [row["Screen name"] for row in reader]
-    tweet_data = [t for t in tweet_data if t["username"] in mp_twitter_handles]
-
-    mps_data = list({tw["username"]: tw["fullname"] for tw in tweet_data}.items())
-
-    tweets_by_twitter_handle = defaultdict(list)
-    for tweet in tweet_data:
-        if "text" in tweet:  # Some tweets don't have text, ie. images and maybe others?
-            tweets_by_twitter_handle[tweet["username"]].append(tweet["text"])
-    # print(f"{tweets_by_twitter_handle=}")
-    return mps_data, tweets_by_twitter_handle
+@cache
+def get_full_names_by_handle() -> dict[str, str]:
+    with FULL_NAMES_BY_HANDLE_PATH.open() as f:
+        return json.load(f)
 
 
 class NoTweetsFoundException(Exception):
@@ -70,12 +58,9 @@ class NoTweetsFoundException(Exception):
 
 
 def get_tweets_for_handle(twitter_handle: str) -> list[str]:
-    # with (DATA_ROOT / "sultana_517.json").open() as f:
-    #     data = json.load(f)
-    # return [tw["text"] for tw in data if tw.get("text")]
-    _, tweets_by_twitter_handle = get_mps_and_tweets()
+    tweets_by_handle = get_tweets_by_handle()
     try:
-        tweets_for_handle = tweets_by_twitter_handle[twitter_handle]
+        tweets_for_handle = tweets_by_handle[twitter_handle]
     except KeyError:
         raise NoTweetsFoundException(
             f"Couldn't find any tweets for twitter handle '{twitter_handle}'"
